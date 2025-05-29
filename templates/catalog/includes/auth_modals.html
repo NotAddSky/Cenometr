@@ -1,0 +1,103 @@
+{% load socialaccount %}
+
+<!-- Модальное окно: Вход -->
+<div class="modal fade" id="loginModal" tabindex="-1">
+    <div class="modal-dialog">
+      <form class="modal-content" id="loginForm" method="post">
+        <div class="modal-header">
+          <h5 class="modal-title">Вход</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          {% csrf_token %}
+          <div id="loginFormContent">
+            <input name="login" type="text" class="form-control mb-2" placeholder="Логин">
+            <input name="password" type="password" class="form-control" placeholder="Пароль">
+            <div class="text-danger small mt-2" id="loginError"></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">Войти</button>
+        </div>
+        <a href="{% provider_login_url 'google' %}" class="btn btn-light border d-flex align-items-center justify-content-center gap-2 w-100 mb-2">
+          <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" width="20" height="20">
+          <span>Войти через Google</span>
+        </a>        
+        <a href="#" id="testTelegramBtn" 
+            class="btn btn-light border d-flex align-items-center justify-content-center gap-2 w-100 mb-2">
+          <img src="https://cdn-icons-png.flaticon.com/512/2111/2111646.png" alt="Telegram" width="20" height="20">
+          <span>Войти через Telegram</span>
+        </a> 
+        <div class="text-center mb-3">
+          <small class="text-muted">Ещё не зарегистрированы?
+            <a href="#" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#registerModal">Регистрация</a>
+          </small>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  
+  <!-- Модальное окно: Регистрация -->
+  <div class="modal fade" id="registerModal" tabindex="-1">
+    <div class="modal-dialog">
+      <form class="modal-content" id="registerForm" method="post">
+        <div class="modal-header">
+          <h5 class="modal-title">Регистрация</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          {% csrf_token %}
+          <div id="registerFormContent">
+            <input name="first_name" type="text" class="form-control mb-2" placeholder="Имя">
+            <input name="last_name" type="text" class="form-control mb-2" placeholder="Фамилия"> 
+            <input name="username" type="text" class="form-control mb-2" placeholder="Логин">           
+            <input name="email" type="email" class="form-control mb-2" placeholder="Email">
+            <input name="password1" type="password" class="form-control mb-2" placeholder="Пароль">
+            <input name="password2" type="password" class="form-control" placeholder="Повторите пароль">
+            <div class="text-danger small mt-2" id="registerError"></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-success">Зарегистрироваться</button>
+        </div>
+        <div class="text-center mb-3">
+          <small class="text-muted">Уже есть аккаунт?
+            <a href="#" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#loginModal">Войти</a>
+          </small>
+        </div>  
+      </form>
+    </div>
+  </div>
+    
+<div id="toastStack"
+  class="position-fixed top-0 start-50 translate-middle-x mt-3"
+  style="z-index: 1100; display: flex; flex-direction: column; gap: 0.5rem; align-items: center;">
+</div>
+
+
+<!-- Модалка подтверждения выхода -->
+<div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="logoutModalLabel">Подтверждение выхода</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+      </div>
+      <div class="modal-body">
+        Вы действительно хотите выйти из аккаунта?
+      </div>
+      <div class="modal-footer">
+        <form method="post" action="{% url 'logout' %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger">Да, выйти</button>
+        </form>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+  

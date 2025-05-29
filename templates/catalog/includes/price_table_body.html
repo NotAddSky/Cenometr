@@ -1,0 +1,24 @@
+{% load custom_filters %}
+{% for price in products %}
+  <tr>
+    <td>
+      <img src="{{ price.product.image.url }}" alt="Фото" width="50" height="50"
+           onerror="this.src='/media/no-photo.png';">
+      <small class="text-muted">{{ price.product.manufacturer.name|default:"—" }}</small>
+    </td>
+    <td>{{ price.product.name }}</td>
+    <td>
+      <div class="d-flex align-items-center gap-2" data-price-id="{{ price.id }}">
+        <span class="price-text">{{ price.price|clean_number }} ₸</span>
+        <input type="text" class="form-control form-control-sm price-input d-none" maxlength="9"
+               style="max-width: 90px;" value="{{ price.price|clean_number }}">
+        <button class="btn btn-sm btn-outline-primary toggle-edit-price">Редактировать</button>
+        <button class="btn btn-sm btn-outline-secondary cancel-edit-price d-none">Отменить</button>
+        <button class="btn btn-sm btn-outline-danger delete-price-btn">Удалить</button>
+      </div>
+      <div class="price-error text-danger small mt-1" style="display: none;"></div>
+    </td>
+  </tr>
+{% empty %}
+  <tr><td colspan="3">Нет товаров в этом магазине.</td></tr>
+{% endfor %}

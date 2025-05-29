@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load static %}
+{% load custom_filters %}
+
+{% block content %}
+<h2 class="mb-4">Избранные товары</h2>
+
+{% if favorites %}
+  <div class="d-flex flex-wrap gap-4 justify-content-start">
+    {% for fav in favorites %}
+      <div class="product-card fade-in">
+        <div class="card h-100">
+          <img src="{{ fav.product.image.url }}" class="card-img-top" alt="{{ fav.product.name }}"
+               onerror="this.src='/media/no-photo.png'">
+          <div class="card-body d-flex flex-column justify-content-between">
+            <h6 class="card-title">{{ fav.product.name }}</h6>
+            <p class="card-text mb-1">
+              <strong>Категория:</strong> {{ fav.product.category.name }}<br>
+              <strong>Производитель:</strong> {{ fav.product.manufacturer.name }}
+            </p>
+            
+            {% if fav.min_price %}
+              <p class="mb-1">
+                <strong>от {{ fav.min_price|clean_number }} ₸</strong><br>
+                <small class="text-muted">{{ fav.store_name }}</small><br>
+                <small class="text-muted">{{ fav.store_address }}</small>
+              </p>
+            {% else %}
+              <p class="text-muted">Товар не представлен в магазинах.</p>
+            {% endif %}
+          </div>
+          <div class="card-footer">
+            <form method="post" action="{% url 'remove_favorite' fav.product.id %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm btn-outline-danger w-100">Удалить из избранного</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <p class="text-muted">У вас пока нет избранных товаров.</p>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends 'catalog/base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <h4>Пожаловаться на несоответствие цены</h4>
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="mb-3">
+      {{ form.product.label_tag }}{{ form.product }}
+    </div>
+    <div class="mb-3">
+      {{ form.store.label_tag }}{{ form.store }}
+    </div>
+    <div class="mb-3">
+      {{ form.description.label_tag }}{{ form.description }}
+    </div>
+    <div class="mb-3">
+      {{ form.image.label_tag }}{{ form.image }}
+    </div>
+    <button type="submit" class="btn btn-danger">Отправить жалобу</button>
+  </form>
+</div>
+{% endblock %}
