@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5">
+  <h4 class="mb-4">Выберите магазин</h4>
+  <form method="get" action="{% url 'owner_dashboard' %}">
+    <div class="mb-3">
+      <select name="store" class="form-select" required>
+        <option value="" selected disabled>Выберите магазин...</option>
+        {% for store in stores %}
+          <option value="{{ store.id }}">{{ store.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Перейти</button>
+  </form>
+</div>
+{% endblock %}

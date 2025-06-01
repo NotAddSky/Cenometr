@@ -1,0 +1,71 @@
+.limited-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+    max-width: 840px;
+    width: 100%;
+  }
+  
+  .product-card {
+    width: 100%;
+    max-width: 250px;
+    margin: 0 auto;
+  }
+  
+  /* Правая колонка */
+  .right-sidebar {
+    min-width: 250px;
+    max-width: 300px;
+  }
+  
+  /* На мобильных: правая колонка уходит вниз */
+  @media (max-width: 992px) {
+    .right-sidebar {
+      width: 100%;
+      margin-top: 20px;
+    }
+  
+    .limited-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  
+    @media (max-width: 500px) {
+      .limited-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  }
+
+  .animate-favorite {
+    animation: pop 0.3s ease;
+    color: gold;
+  }
+  
+  @keyframes pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.4); }
+    100% { transform: scale(1); }
+  }
+  
+  #toastWrapper {
+    right: 0 !important;
+    top: 1rem !important;
+    max-width: 350px;
+  }
+  
+  .toast {
+    width: 100%;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+
+  .toast-fade {
+    animation: fadeInOut 3s ease-in-out forwards;
+  }
+  
+  @keyframes fadeInOut {
+    0%   { opacity: 0; transform: translateY(-20px); }
+    10%  { opacity: 1; transform: translateY(0); }
+    90%  { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+  }
+  

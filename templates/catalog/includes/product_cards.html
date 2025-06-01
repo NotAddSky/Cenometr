@@ -1,0 +1,32 @@
+{% load custom_filters %}
+{% for product in products %}
+  <div class="product-card fade-in">
+    <div class="card h-100">
+      {% if product.image %}
+        <img src="{{ product.image.url }}" class="card-img-top"
+             onerror="this.src='/media/no-photo.png'" alt="Фото">
+      {% else %}
+        <img src="/media/no-photo.png" class="card-img-top" alt="Фото">
+      {% endif %}
+      <div class="card-body">
+        <h6 class="card-title">{{ product.name }}</h6>
+        <p class="card-text">
+          от <strong>{{ product.min_price|clean_number }} ₸</strong><br>
+          <small class="text-muted">в {{ product.store_name }}</small>
+        </p>
+      </div>
+      <div class="card-footer d-flex justify-content-between">
+        <button class="btn btn-sm btn-outline-primary open-product-modal" 
+                data-url="{% url 'product_detail_ajax' product.id %}" data-product-id="{{ product.id }}">
+          Подробнее
+        </button>
+        <button class="btn btn-sm btn-outline-warning favorite-btn"
+                data-product-id="{{ product.id }}"
+                data-is-favorite="{% if product.id in favorite_ids %}true{% else %}false{% endif %}"
+                title="Добавить в избранное">
+          <span class="favorite-icon">{% if product.id in favorite_ids %}★{% else %}☆{% endif %}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+{% endfor %}

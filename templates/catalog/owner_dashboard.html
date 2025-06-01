@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+{% load custom_filters %}
+{% load static %}
+{% block content %}
+<link rel="stylesheet" href="{% static 'catalog/css/owner_dashboard.css' %}">
+<script>
+  window.storeNeeded = {{ store_modal_needed|yesno:"true,false"|lower }};
+</script>
+
+<h2>Личный кабинет владельца</h2>
+{% if stores|length > 1 %}
+  <form method="get" class="mb-3">
+    <label for="storeSelect">Выберите магазин:</label>
+    <select id="storeSelect" name="store" class="form-select" onchange="this.form.submit()">
+      {% for store in stores %}
+        <option value="{{ store.id }}" {% if store == selected_store %}selected{% endif %}>
+          {{ store.name }}
+        </option>
+      {% endfor %}
+    </select>
+  </form>
+{% elif selected_store %}
+  <h4>Магазин: {{ selected_store.name }}</h4>
+  {% else %}
+  <div class="alert alert-warning">Магазин не выбран или не найден.</div>
+{% endif %}
+
+<hr>
+
+<form id="filter-form" class="row mb-3 g-2 align-items-end">
+  <!-- store ID (чтобы фильтр знали, к какому магазину применять) -->
+  <input type="hidden" name="store" value="{{ selected_store.id }}">
+
+  <!-- Поиск по названию -->
+  <div class="col-auto">
+    <input type="text" name="q" class="form-control" placeholder="Поиск"
+           value="{{ search_query }}">
+  </div>
+
+  <!-- Категория -->
+  <div class="col-auto">
+    <select name="category" class="form-select">
+      <option value="">Все категории</option>
+      {% for cat in categories %}
+        <option value="{{ cat.id }}"
+          {% if selected_category == cat.id|stringformat:"s" %}selected{% endif %}>
+          {{ cat.name }}
+        </option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <!-- Производитель -->
+  <div class="col-auto">
+    <select name="manufacturer" class="form-select">
+      <option value="">Все производители</option>
+      {% for m in manufacturers %}
+        <option value="{{ m.id }}"
+          {% if selected_manufacturer == m.id|stringformat:"s" %}selected{% endif %}>
+          {{ m.name }}
+        </option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <!-- Сортировка -->
+  <div class="col-auto">
+    <select name="order" class="form-select">
+      <option value="name" {% if order == "name" %}selected{% endif %}>По названию</option>
+      <option value="created" {% if order == "created" %}selected{% endif %}>По дате добавления</option>
+    </select>
+  </div>
+  <div class="col-auto">
+    <button type="button" id="reset-filters" class="btn btn-outline-secondary">Сбросить</button>
+  </div>
+</form>
+
+
+<hr>
+
+{% if selected_store %}
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Фото</th>
+        <th>Товар</th>
+        <th>Цена</th>
+      </tr>
+    </thead>
+    <tbody id="price-table-body">
+      {% include 'catalog/includes/price_table_body.html' %}
+    </tbody>
+  </table>
+  {% if selected_store %}
+  <button class="btn btn-outline-success mt-3"
+          data-bs-toggle="modal"
+          data-bs-target="#universalModal"
+          data-url="{% url 'add_price' %}?store={{ selected_store.id }}">
+    Добавить товар в магазин
+  </button>
+  {% endif %}
+{% endif %}
+
+<hr>
+
+<h4 class="mt-5">Жалобы на товары в этом магазине:</h4>
+<table class="table table-bordered table-sm align-middle">
+  <thead class="table-light">
+    <tr>
+      <th>Товар</th>
+      <th>Магазин</th>
+      <th>Описание</th>
+      <th>Дата</th>
+      <th>Статус</th>
+      <th>Ответ</th>
+      <th>Действие</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for complaint in complaints %}
+      <tr>
+        <td>{{ complaint.product.name }}</td>
+        <td>{{ complaint.store.name }}</td>
+        <td>{{ complaint.description|truncatechars:50 }}</td>
+        <td>{{ complaint.created_at|date:"d.m.Y H:i" }}</td>
+        <td>
+          {% if complaint.status == "new" %}
+            <span class="badge bg-warning text-dark">Новая</span>
+          {% elif complaint.status == "review" %}
+            <span class="badge bg-info text-dark">В рассмотрении</span>
+          {% elif complaint.status == "resolved" %}
+            <span class="badge bg-success">Решена</span>
+          {% endif %}
+        </td>
+        <td>
+          {{ complaint.response|default:"—" }}
+        </td>
+        <td>
+          <form method="post" action="{% url 'update_complaint' complaint.id %}">
+            {% csrf_token %}
+            <select name="status" class="form-select form-select-sm mb-2">
+              <option value="new" {% if complaint.status == 'new' %}selected{% endif %}>Новая</option>
+              <option value="review" {% if complaint.status == 'review' %}selected{% endif %}>В рассмотрении</option>
+              <option value="resolved" {% if complaint.status == 'resolved' %}selected{% endif %}>Решена</option>
+            </select>
+            <textarea name="response" class="form-control form-control-sm mb-2"
+                      placeholder="Ответ пользователю (необязательно)">{{ complaint.response }}</textarea>
+            <button type="submit" class="btn btn-sm btn-outline-primary w-100">Сохранить</button>
+          </form>
+        </td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="7" class="text-center">Жалоб нет.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+
+
+<div class="modal fade" id="universalModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Редактировать</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="modalBodyContent">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast-подсказка -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1055">
+  <div id="toast-deleted" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+      <div class="toast-body">
+        Товар успешно удалён
+      </div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Закрыть"></button>
+    </div>
+  </div>
+</div>
+
+<script src="{% static 'catalog/js/owner_dashboard.js' %}"></script>  
+{% endblock %}
+
+  
+  

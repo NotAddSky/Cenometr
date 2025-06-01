@@ -1,0 +1,8 @@
+<form method="post" action="{% url 'edit_price' price.pk %}">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <div class="text-end">
+      <button type="submit" class="btn btn-success">Сохранить</button>
+    </div>
+  </form>
+  
