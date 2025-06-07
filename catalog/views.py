@@ -3,7 +3,9 @@ from django.http import JsonResponse
 from django.contrib.auth import login
 from django.core.paginator import Paginator
 from django.db.models import OuterRef, Subquery
+from django.contrib.auth.decorators import user_passes_test
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
@@ -456,8 +458,6 @@ def submit_complaint_ajax(request):
 @role_required('owner')
 def resolve_complaint(request, complaint_id):
     complaint = get_object_or_404(Complaint, id=complaint_id)
-
-    # Проверяем, что пользователь — владелец магазина
     if request.user.role == 'admin' or complaint.store in request.user.stores.all():
         complaint.status = 'resolved'
         complaint.save()
@@ -515,6 +515,62 @@ class AvailableStoreAutocomplete(autocomplete.Select2QuerySetView):
             queryset = queryset.exclude(id__in=used)
 
         return queryset
+
+
+def admin_required(view_func):
+    return user_passes_test(lambda u: u.is_authenticated and u.role == 'admin')(view_func)
+
+
+@admin_required
+@require_http_methods(["GET"])
+def todo_list_api(request):
+    tasks = list(TodoTask.objects.order_by(
+        '-created_at').values('id', 'title', 'status'))
+    return JsonResponse({'tasks': tasks})
+
+
+@admin_required
+@require_http_methods(["POST"])
+def todo_create_api(request):
+    try:
+        data = json.loads(request.body)
+        title = data.get('title', '').strip()
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Некорректный JSON'}, status=400)
+
+    if not title:
+        return JsonResponse({'error': 'Название задачи не указано'}, status=400)
+
+    task = TodoTask.objects.create(title=title, created_by=request.user)
+    return JsonResponse({
+        'id': task.id,
+        'title': task.title,
+        'status': task.status
+    })
+
+
+@admin_required
+@require_http_methods(["POST"])
+def todo_update_api(request, task_id):
+    try:
+        task = TodoTask.objects.get(pk=task_id)
+        data = json.loads(request.body.decode('utf-8'))
+        if 'status' in data:
+            task.status = data['status']
+            task.save()
+        return JsonResponse({'success': True})
+    except TodoTask.DoesNotExist:
+        return JsonResponse({'error': 'Задача не найдена'}, status=404)
+
+
+@admin_required
+@require_http_methods(["DELETE"])
+def todo_delete_api(request, task_id):
+    try:
+        TodoTask.objects.get(id=task_id).delete()
+        return JsonResponse({'success': True})
+    except:
+        return JsonResponse({'success': False}, status=404)
 
 
 def home(request):

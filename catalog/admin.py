@@ -62,3 +62,11 @@ class ComplaintAdmin(admin.ModelAdmin):
 class CategoryAdmin(admin.ModelAdmin):
     list_display = ['name']
     search_fields = ['name']
+
+
+@admin.register(TodoTask)
+class TodoTaskAdmin(admin.ModelAdmin):
+    list_display = ('id', 'title', 'status', 'created_by', 'created_at')
+    list_filter = ('status', 'created_at')
+    search_fields = ('title',)
+    ordering = ('-created_at',)

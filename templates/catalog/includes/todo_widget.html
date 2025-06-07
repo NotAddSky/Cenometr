@@ -1,0 +1,29 @@
+{% if request.user.is_authenticated and request.user.role == 'admin' %}
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+
+  <div id="todoToggleBtn" class="position-fixed bottom-0 end-0 m-3" style="z-index: 1050;">
+    <button class="btn btn-primary shadow">📋 Задачи</button>
+  </div>
+
+  <div id="todoPanel" class="todo-panel shadow">
+    <div class="resize-handle-start"></div>
+    <h6 class="fw-bold mb-2">Список задач</h6>
+
+    <div class="mb-2">
+      <select id="statusFilter" class="form-select form-select-sm">
+        <option value="all">Все</option>
+        <option value="new">🕒 Новые</option>
+        <option value="in_progress">⚙ В работе</option>
+        <option value="done">✅ Готово</option>
+        <option value="cancelled">❌ Отменено</option>
+      </select>
+    </div>
+
+    <ul id="todoList" class="list-group small mb-3"></ul>
+
+    <form id="todoForm" class="d-flex gap-2">
+      <input type="text" name="title" class="form-control form-control-sm" placeholder="Новая задача">
+      <button type="submit" class="btn btn-success btn-sm">+</button>
+    </form>
+  </div>  
+{% endif %}

@@ -45,8 +45,10 @@ urlpatterns = [
     path('favorites/toggle/', views.toggle_favorite, name='toggle_favorite'),
     path('accounts/', include('allauth.urls')),
     path('telegram-auth/', views.telegram_auth, name='telegram_auth'),
+    path('api/todo/', views.todo_list_api, name='todo_list_api'),
+    path('api/todo/create/', views.todo_create_api, name='todo_create_api'),
+    path('api/todo/<int:task_id>/update/',
+         views.todo_update_api, name='todo_update_api'),
+    path('api/todo/<int:task_id>/delete/',
+         views.todo_delete_api, name='todo_delete_api'),
 ]
-
-if settings.DEBUG:
-    urlpatterns += static(settings.STATIC_URL,
-                          document_root=settings.STATIC_ROOT)

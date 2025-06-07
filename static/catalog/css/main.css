@@ -1,0 +1,61 @@
+.todo-panel {
+    position: fixed;
+    bottom: 60px;
+    right: 20px;
+    background: #fff;
+    border-radius: 8px;
+    padding: 1rem;
+    width: 320px;
+    z-index: 1050;
+    border: 1px solid #ccc;
+    max-height: 70vh;
+    overflow-y: auto;
+    transition: width 0.3s ease;
+  }
+  
+  .resize-handle-start {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 16px;
+    height: 16px;
+    cursor: ew-resize;
+    background: #ddd;
+    border-top-right-radius: 4px;
+  }
+  
+  .todo-panel.expanded {
+    width: 500px;
+  }
+  
+  .todo-item-text {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+  
+  .todo-status-select {
+    margin-top: 4px;
+  }
+
+  .fade-in {
+    animation: fadeIn 0.3s ease-in;
+  }
+  
+  .fade-out {
+    opacity: 0;
+    transition: opacity 0.3s ease-out;
+  }
+  
+  .todo-item-text {
+    word-break: break-word;
+  }
+  
+  .todo-status-select {
+    width: 100%;
+  }
+  
+  .btn-close {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+  }
+  

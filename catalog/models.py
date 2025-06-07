@@ -139,6 +139,24 @@ class Complaint(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
 
+class TodoTask(models.Model):
+    STATUS_CHOICES = [
+        ('new', 'Новая задача'),
+        ('in_progress', 'Выполняется'),
+        ('done', 'Выполнено'),
+        ('cancelled', 'Отменено'),
+    ]
+
+    title = models.CharField(max_length=255)
+    status = models.CharField(
+        max_length=20, choices=STATUS_CHOICES, default='new')
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+
 @receiver(m2m_changed, sender=Store.owners.through)
 def manage_user_owner_role(sender, instance, action, pk_set, **kwargs):
     from .models import User

@@ -30,7 +30,7 @@
     <aside class="sidebar">
       <div class="list-group">
         <a class="list-group-item list-group-item-action" href="/">Главная страница</a>
-        {% if request.user.role == "owner" or request.user.role == "admin" %}
+        {% if request.user.role == "owner" or request.user.role == "admin " %}
           <a class="list-group-item list-group-item-action" href="{% url 'owner_dashboard' %}">Мой магазин</a>
         {% endif %}
       </div>
@@ -70,8 +70,8 @@
       </main>
     </div>
   </div>
-  
 
+  {% include "catalog/includes/todo_widget.html" %}
   {% include "catalog/includes/auth_modals.html" %}
   {% include "catalog/includes/product_modal_container.html" %}
   {% include "catalog/includes/complaint_modal.html" %}
@@ -79,6 +79,7 @@
   <script src="{% static 'catalog/js/modal_auth.js' %}"></script>
   <script src="{% static 'catalog/js/product_modal.js' %}"></script>
   <script src="{% static 'catalog/js/favorite.js' %}"></script>
+  <script src="{% static 'catalog/js/todo.js' %}"></script>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   
