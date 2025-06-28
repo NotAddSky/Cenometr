@@ -16,6 +16,16 @@ class UserAdmin(BaseUserAdmin):
     )
 
 
+@admin.register(ProductSuggestion)
+class ProductSuggestionAdmin(admin.ModelAdmin):
+    list_display = ('name', 'price', 'status', 'store_text',
+                    'category_text', 'user', 'created_at')
+    list_filter = ('status', 'created_at')
+    search_fields = ('name', 'manufacturer', 'store_text',
+                     'category_text', 'user__username')
+    readonly_fields = ('created_at', 'reviewed_at')
+
+
 @admin.register(Store)
 class StoreAdmin(admin.ModelAdmin):
     list_display = ('name', 'address_base', 'phone')

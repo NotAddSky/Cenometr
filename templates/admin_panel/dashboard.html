@@ -1,0 +1,35 @@
+{% extends 'admin_panel/base_admin.html' %}
+
+{% block title %}Панель администратора{% endblock %}
+
+{% block content %}
+<h2>Панель администратора</h2>
+<p class="text-muted mb-4">Добро пожаловать, {{ request.user.username }}.</p>
+
+<div class="row g-4">
+  <div class="col-md-4">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h6 class="card-title">Всего товаров</h6>
+        <p class="fs-4">{{ total_products }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h6 class="card-title">Магазинов</h6>
+        <p class="fs-4">{{ total_stores }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h6 class="card-title">Ожидают модерации</h6>
+        <p class="fs-4">{{ pending_suggestions }}</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

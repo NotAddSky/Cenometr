@@ -1,5 +1,5 @@
 from django import forms
-from .models import Price, Product, User, Complaint
+from .models import *
 from django.contrib.auth.forms import UserCreationForm
 
 
@@ -55,3 +55,45 @@ class ComplaintForm(forms.ModelForm):
         widgets = {
             'description': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Опишите проблему'}),
         }
+
+
+class StoreForm(forms.ModelForm):
+    class Meta:
+        model = Store
+        fields = ['name', 'address_base', 'house_number', 'phone']
+
+
+class ProductSuggestionForm(forms.ModelForm):
+    class Meta:
+        model = ProductSuggestion
+        fields = ['name', 'category_text', 'manufacturer',
+                  'price', 'store_text', 'image']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'category': forms.Select(attrs={'class': 'form-select'}),
+            'manufacturer': forms.TextInput(attrs={'class': 'form-control'}),
+            'price': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'store': forms.Select(attrs={'class': 'form-select'}),
+        }
+
+
+class ManufacturerForm(forms.ModelForm):
+    class Meta:
+        model = Manufacturer
+        fields = ['name']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'})
+        }
+
+    def clean_name(self):
+        name = self.cleaned_data['name'].strip()
+        exists = Manufacturer.objects.filter(name__iexact=name)
+
+        # При редактировании — исключаем себя
+        if self.instance.pk:
+            exists = exists.exclude(pk=self.instance.pk)
+
+        if exists.exists():
+            raise forms.ValidationError(
+                "Производитель с таким названием уже существует.")
+        return name

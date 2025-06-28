@@ -1,11 +1,23 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.core.files.base import ContentFile
 from django.db.models.signals import m2m_changed
 from django.dispatch import receiver
+from PIL import Image
+import os
+import io
+import re
+from django.conf import settings
+
+
+def user_avatar_path(instance, filename):
+    return f'avatars/user_{instance.id}/{filename}'
 
 
 class User(AbstractUser):
     email = models.EmailField(unique=True)
+    avatar = models.ImageField(
+        upload_to=user_avatar_path, blank=True, null=True, default='avatars/default.png')
     is_admin = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -17,7 +29,7 @@ class User(AbstractUser):
     ]
 
     role = models.CharField(
-        max_length=10, choices=ROLE_CHOICES, default='user')
+        max_length=20, choices=ROLE_CHOICES, default='user')
     created_at = models.DateTimeField(auto_now_add=True)
 
     def is_owner(self):
@@ -25,6 +37,19 @@ class User(AbstractUser):
 
     def is_admin(self):
         return self.role == 'admin'
+
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            return super().save(*args, **kwargs)
+        if self.avatar and hasattr(self.avatar, 'file'):
+            image = Image.open(self.avatar).convert('RGB')
+            buffer = io.BytesIO()
+            image.save(buffer, format='WEBP', quality=95)
+            filename = user_avatar_path(self, 'avatar.webp')
+            self.avatar.save(filename, ContentFile(
+                buffer.getvalue()), save=False)
+
+        super().save(*args, **kwargs)
 
 
 class AddressBase(models.Model):
@@ -71,8 +96,16 @@ class Manufacturer(models.Model):
         return self.name
 
 
+def clean_filename(name):
+    return re.sub(r'[<>:"/\\|?*]', '', name)
+
+
 def product_image_path(instance, filename):
-    return f'products/{instance.id}/{filename}'
+    category = clean_filename(
+        instance.category.name) if instance.category else 'uncategorized'
+    product = clean_filename(instance.name)
+    ext = filename.split('.')[-1]
+    return f'products/{category}/{product}/{product}.{ext}'
 
 
 class Product(models.Model):
@@ -90,15 +123,32 @@ class Product(models.Model):
     )
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
-    category = models.ForeignKey(ProductCategory, on_delete=models.CASCADE)
+    category = models.ForeignKey('ProductCategory', on_delete=models.CASCADE)
     manufacturer = models.ForeignKey(
-        Manufacturer, on_delete=models.SET_NULL, null=True, blank=True)
+        'Manufacturer', on_delete=models.SET_NULL, null=True, blank=True)
     quantity_value = models.FloatField(max_length=10)
-    quantity_unit = models.CharField(
-        max_length=10, choices=UNIT_CHOICES)
+    quantity_unit = models.CharField(max_length=10, choices=UNIT_CHOICES)
 
     def __str__(self):
         return f"{self.name} ({self.quantity_value} {self.get_quantity_unit_display()})"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+        if self.image and self.image.name != 'no-photo.png' and not self.image.name.lower().endswith('.webp'):
+            image_path = self.image.path
+            try:
+                im = Image.open(image_path).convert('RGB')
+                webp_path = os.path.splitext(image_path)[0] + '.webp'
+                im.save(webp_path, 'webp', quality=100, lossless=True)
+
+                self.image.name = os.path.relpath(
+                    webp_path, settings.MEDIA_ROOT).replace("\\", "/")
+                os.remove(image_path)
+                super().save(update_fields=['image'])
+
+            except Exception as e:
+                print("Ошибка при конвертации изображения продукта:", e)
 
 
 class Price(models.Model):
@@ -175,3 +225,28 @@ def manage_user_owner_role(sender, instance, action, pk_set, **kwargs):
                 if not user.owned_stores.exists():
                     user.role = 'user'
                     user.save()
+
+
+class ProductSuggestion(models.Model):
+    STATUS_CHOICES = [
+        ('new', 'Новая'),
+        ('approved', 'Принята'),
+        ('rejected', 'Отклонена')
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    name = models.CharField(max_length=255)
+    category_text = models.CharField(max_length=255)
+    manufacturer = models.CharField(max_length=255, blank=True)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    store_text = models.CharField(max_length=255)
+    image = models.ImageField(upload_to='suggestions/', blank=True, null=True)
+
+    status = models.CharField(
+        max_length=20, choices=STATUS_CHOICES, default='new')
+    created_at = models.DateTimeField(auto_now_add=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    admin_comment = models.TextField(blank=True)
+
+    def __str__(self):
+        return f"{self.name} ({self.store_text}) — {self.get_status_display()}"

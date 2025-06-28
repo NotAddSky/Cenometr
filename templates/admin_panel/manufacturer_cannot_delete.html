@@ -1,0 +1,16 @@
+{% extends "admin_panel/base_admin.html" %}
+{% block content %}
+<h2 class="mb-4">Удаление невозможно</h2>
+
+<div class="alert alert-warning">
+  Невозможно удалить производителя <strong>{{ manufacturer.name }}</strong>, так как он используется в следующих товарах:
+</div>
+
+<ul>
+  {% for product in products %}
+    <li>{{ product.name }} (ID {{ product.id }})</li>
+  {% endfor %}
+</ul>
+
+<a href="{% url 'admin_manufacturer_list' %}" class="btn btn-secondary mt-3">Назад</a>
+{% endblock %}

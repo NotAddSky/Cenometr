@@ -2,12 +2,8 @@
 {% for product in products %}
   <div class="product-card fade-in">
     <div class="card h-100">
-      {% if product.image %}
-        <img src="{{ product.image.url }}" class="card-img-top"
-             onerror="this.src='/media/no-photo.png'" alt="Фото">
-      {% else %}
-        <img src="/media/no-photo.png" class="card-img-top" alt="Фото">
-      {% endif %}
+      <img src="{{ product.image.url }}" class="card-img-top"
+           onerror="this.src='/media/no-photo.png'" alt="Фото">
       <div class="card-body">
         <h6 class="card-title">{{ product.name }}</h6>
         <p class="card-text">
@@ -16,7 +12,7 @@
         </p>
       </div>
       <div class="card-footer d-flex justify-content-between">
-        <button class="btn btn-sm btn-outline-primary open-product-modal" 
+        <button class="btn btn-sm btn-outline-primary open-product-modal"
                 data-url="{% url 'product_detail_ajax' product.id %}" data-product-id="{{ product.id }}">
           Подробнее
         </button>

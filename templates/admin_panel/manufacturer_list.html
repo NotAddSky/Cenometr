@@ -1,0 +1,82 @@
+{% extends "admin_panel/base_admin.html" %}
+{% load static %}
+{% block content %}
+
+<h2 class="mb-4">Производители</h2>
+
+<div class="mb-3 d-flex justify-content-between align-items-center">
+  <input type="text" id="manufacturerSearch" class="form-control w-50" placeholder="Поиск по названию...">
+  <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#manufacturerModal" data-action="add">Добавить</button>
+</div>
+
+<table class="table table-sm table-hover align-middle">
+  <thead>
+    <tr>
+      <th>Название</th>
+      <th>Товары</th>
+      <th style="width: 200px;">Действия</th>
+    </tr>
+  </thead>
+  <tbody id="manufacturerTable">
+    {% for manufacturer in manufacturers %}
+    <tr data-name="{{ manufacturer.name|lower }}">
+      <td>{{ manufacturer.name }}</td>
+      <td>
+        {% if manufacturer.product_set.count %}
+          <span class="text-muted small">({{ manufacturer.product_set.count }} товар(ов))</span>
+        {% else %}
+          —
+        {% endif %}
+      </td>
+      <td>
+        <button class="btn btn-sm btn-outline-secondary me-2 edit-btn"
+                data-id="{{ manufacturer.id }}"
+                data-name="{{ manufacturer.name }}"
+                data-bs-toggle="modal"
+                data-bs-target="#manufacturerModal">
+          Редактировать
+        </button>
+
+        {% if manufacturer.product_set.count == 0 %}
+        <button class="btn btn-sm btn-outline-danger delete-btn" data-id="{{ manufacturer.id }}">
+          Удалить
+        </button>
+        {% else %}
+        <span class="text-muted small">Удаление недоступно</span>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<!-- Модальное окно -->
+<div class="modal fade" id="manufacturerModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <form id="manufacturerForm" class="modal-content">
+      {% csrf_token %}
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalTitle">Добавить производителя</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label for="manufacturerName" class="form-label">Название</label>
+          <input type="text" class="form-control" id="manufacturerName" name="name" required>
+          <div id="nameError" class="text-danger small mt-1 d-none">Производитель с таким названием уже существует</div>
+        </div>
+        <input type="hidden" id="manufacturerId" name="id">
+      </div>
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-primary">Сохранить</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'catalog/js/manufacturer_modal.js' %}"></script>
+{% endblock %}

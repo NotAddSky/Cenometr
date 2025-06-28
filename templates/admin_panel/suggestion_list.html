@@ -1,0 +1,45 @@
+{% extends "admin_panel/base_admin.html" %}
+{% block content %}
+<h4 class="mb-3">Предложения пользователей</h4>
+
+<table class="table table-hover table-bordered align-middle small">
+  <thead class="table-light">
+    <tr>
+      <th>Товар</th>
+      <th>Категория</th>
+      <th>Цена</th>
+      <th>Магазин</th>
+      <th>Пользователь</th>
+      <th>Дата</th>
+      <th>Статус</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for s in suggestions %}
+      <tr>
+        <td>{{ s.name }}</td>
+        <td>{{ s.category_text }}</td>
+        <td>{{ s.price }} ₸</td>
+        <td>{{ s.store_text }}</td>
+        <td>{{ s.user.username }}</td>
+        <td>{{ s.created_at|date:"d.m.Y H:i" }}</td>
+        <td>
+          <span class="badge 
+            {% if s.status == 'new' %}bg-secondary
+            {% elif s.status == 'approved' %}bg-success
+            {% elif s.status == 'rejected' %}bg-danger
+            {% endif %}">
+            {{ s.get_status_display }}
+          </span>
+        </td>
+        <td>
+          <a href="{% url 'admin_suggestion_detail' s.pk %}" class="btn btn-sm btn-outline-primary">Подробнее</a>
+        </td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="8" class="text-center">Пока нет предложений.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,109 @@
+{% extends "admin_panel/base_admin.html" %}
+{% load static %}
+{% block content %}
+
+<h2 class="mb-4">Управление товарами, категориями и производителями</h2>
+
+<!-- Вкладки -->
+<ul class="nav nav-tabs mb-3" id="productTabs" role="tablist">
+  <li class="nav-item">
+    <a class="nav-link active" data-bs-toggle="tab" href="#products" role="tab">Товары</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" data-bs-toggle="tab" href="#categories" role="tab">Категории</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" data-bs-toggle="tab" href="#manufacturers" role="tab">Производители</a>
+  </li>
+</ul>
+
+<div class="tab-content">
+  <!-- 🧾 Товары -->
+  <div class="tab-pane fade show active" id="products" role="tabpanel">
+    <div class="d-flex justify-content-between mb-2">
+      <input type="text" id="productSearch" class="form-control w-50" placeholder="Поиск товаров...">
+      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProductModal">+ Добавить товар</button>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-bordered table-sm" id="productTable">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Название</th>
+            <th>Категория</th>
+            <th>Производитель</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for product in products %}
+          <tr>
+            <td>{{ product.id }}</td>
+            <td>{{ product.name }}</td>
+            <td>{{ product.category.name }}</td>
+            <td>{{ product.manufacturer.name }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 🏷 Категории -->
+  <div class="tab-pane fade" id="categories" role="tabpanel">
+    <div class="d-flex justify-content-between mb-2">
+      <input type="text" id="categorySearch" class="form-control w-50" placeholder="Поиск категорий...">
+      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCategoryModal">+ Добавить категорию</button>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-bordered table-sm" id="categoryTable">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Название</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for category in categories %}
+          <tr>
+            <td>{{ category.id }}</td>
+            <td>{{ category.name }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 🏭 Производители -->
+  <div class="tab-pane fade" id="manufacturers" role="tabpanel">
+    <div class="d-flex justify-content-between mb-2">
+      <input type="text" id="manufacturerSearch" class="form-control w-50" placeholder="Поиск производителей...">
+      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addManufacturerModal">+ Добавить производителя</button>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-bordered table-sm" id="manufacturerTable">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Название</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for manufacturer in manufacturers %}
+          <tr>
+            <td>{{ manufacturer.id }}</td>
+            <td>{{ manufacturer.name }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% include "admin_panel/modals/add_product_modal.html" %}
+{% include "admin_panel/modals/add_category_modal.html" %}
+{% include "admin_panel/modals/add_manufacturer_modal.html" %}
+
+<script src="{% static 'catalog/js/product_tabs_search.js' %}"></script>
+{% endblock %}

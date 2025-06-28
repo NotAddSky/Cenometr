@@ -1,25 +1,49 @@
-//Модальное окно
-  document.addEventListener('DOMContentLoaded', function () {
-    $(document).on('click', '[data-bs-target="#universalModal"]', function (e) {
-      const url = $(this).data('url');
-  
-      $.get(url, function (data) {
-        $('#modalBodyContent').html(data);
-      });
-    });
-  
-    $(document).on('submit', '#universalModal form', function (e) {
-      e.preventDefault();
-      const form = $(this);
-      $.post(form.attr('action'), form.serialize(), function () {
-        location.reload();
-      }).fail(function (xhr) {
-        $('#modalBodyContent').html(xhr.responseText);
-      });
+// === CSRF для всех POST-запросов ===
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let cookie of cookies) {
+      cookie = cookie.trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+
+$.ajaxSetup({
+  beforeSend: function(xhr, settings) {
+    if (!(/^GET|HEAD|OPTIONS|TRACE$/i.test(settings.type))) {
+      xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+    }
+  }
+});
+
+// === Модальное окно ===
+document.addEventListener('DOMContentLoaded', function () {
+  $(document).on('click', '[data-bs-target="#universalModal"]', function (e) {
+    const url = $(this).data('url');
+
+    $.get(url, function (data) {
+      $('#modalBodyContent').html(data);
     });
   });
 
-//Редактирование цен
+  $(document).on('submit', '#universalModal form', function (e) {
+    e.preventDefault();
+    const form = $(this);
+    $.post(form.attr('action'), form.serialize(), function () {
+      location.reload();
+    }).fail(function (xhr) {
+      $('#modalBodyContent').html(xhr.responseText);
+    });
+  });
+});
+
+// === Редактирование цен ===
 $(document).on('click', '.toggle-edit-price', function () {
   const container = $(this).closest('[data-price-id]');
   const span = container.find('.price-text');
@@ -27,6 +51,7 @@ $(document).on('click', '.toggle-edit-price', function () {
   const saveBtn = $(this);
   const cancelBtn = container.find('.cancel-edit-price');
   const priceId = container.data('price-id');
+  const errorBox = container.next('.price-error');
 
   if (input.hasClass('d-none')) {
     span.addClass('d-none');
@@ -34,11 +59,12 @@ $(document).on('click', '.toggle-edit-price', function () {
     cancelBtn.removeClass('d-none');
     saveBtn.text('Сохранить');
   } else {
-    const newPrice = parseFloat(input.val());
-    const errorBox = container.next('.price-error');
+    const rawVal = input.val().replace(',', '.');
+    const newPrice = parseFloat(rawVal);
 
     if (isNaN(newPrice) || newPrice < 0 || newPrice > 9999999) {
-      errorBox.text('Цена должна быть от 0 до 9 999 999 ₸').fadeIn(200).delay(2000).fadeOut(400);
+      errorBox.text('Цена должна быть от 0 до 9 999 999 ₸')
+        .fadeIn(200).delay(2000).fadeOut(400);
       input.addClass('is-invalid');
       setTimeout(() => input.removeClass('is-invalid'), 2000);
       return;
@@ -47,21 +73,38 @@ $(document).on('click', '.toggle-edit-price', function () {
     $.ajax({
       url: `/owner/price/${priceId}/update/`,
       method: 'POST',
-      data: { price: newPrice },
+      data: {
+        price: newPrice,
+        csrfmiddlewaretoken: getCookie('csrftoken')
+      },
       success: function () {
-        span.text(cleanNumberDisplay(newPrice) + ' ₸').removeClass('d-none');
+        let formatted;
+        if (Number.isInteger(newPrice)) {
+          formatted = newPrice.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+        } else {
+          formatted = newPrice.toFixed(2).replace(/\.?0+$/, '')
+            .replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+        }
+      
+        span.text(formatted + ' ₸');
+        input.val(formatted);
+      
+        span.removeClass('d-none');
         input.addClass('d-none');
         cancelBtn.addClass('d-none');
         saveBtn.text('Редактировать');
       },
       error: function (xhr) {
-        errorBox.text('Ошибка: ' + (xhr.responseJSON?.error || 'неизвестная')).fadeIn(200).delay(2000).fadeOut(400);
+        errorBox.text('Ошибка: ' + (xhr.responseJSON?.error || 'неизвестная'))
+          .fadeIn(200).delay(2000).fadeOut(400);
       }
     });
   }
 });
 
-// Обработка кнопки "Отменить"
+
+
+// === Кнопка "Отменить" ===
 $(document).on('click', '.cancel-edit-price', function () {
   const container = $(this).closest('[data-price-id]');
   const span = container.find('.price-text');
@@ -76,7 +119,7 @@ $(document).on('click', '.cancel-edit-price', function () {
   saveBtn.text('Редактировать');
 });
 
-// Обработка кнопки "Удалить"
+// === Удаление товара ===
 $(document).on('click', '.delete-price-btn', function () {
   const container = $(this).closest('[data-price-id]');
   const priceId = container.data('price-id');
@@ -91,7 +134,7 @@ $(document).on('click', '.delete-price-btn', function () {
     success: function () {
       container.closest('tr').fadeOut(300, function () {
         $(this).remove();
-        
+
         const toastEl = document.getElementById('toast-deleted');
         if (toastEl) {
           const toast = new bootstrap.Toast(toastEl);
@@ -105,54 +148,48 @@ $(document).on('click', '.delete-price-btn', function () {
   });
 });
 
-  
-// Запрет ввода в цены букв и лишнего
+// === Защита от букв и формат цены 0.00 ===
 $(document).on('keypress', '.price-input', function (e) {
   const char = String.fromCharCode(e.which);
   const allowedChars = '0123456789.';
-  const value = $(this).val()
-    if (!allowedChars.includes(char)) {
-      e.preventDefault();
+  const value = $(this).val();
+  if (!allowedChars.includes(char)) {
+    e.preventDefault();
   }
-    if (char === '.' && value.includes('.')) {
-      e.preventDefault();
+  if (char === '.' && value.includes('.')) {
+    e.preventDefault();
   }
-})
+});
 
-// Только цены формата 0.00
 $(document).on('input', '.price-input', function () {
   const val = $(this).val();
   const parts = val.split('.');
   if (parts.length === 2 && parts[1].length > 2) {
     $(this).val(parts[0] + '.' + parts[1].slice(0, 2));
   }
-})
+});
 
-// Модальное окно выбора магазина
-  if (window.storeNeeded === true) {
+// === Модалка выбора магазина ===
+if (window.storeNeeded === true) {
   $.ajax({
     url: "/owner/modal/store-select/",
     method: "GET",
     headers: { "X-Requested-With": "XMLHttpRequest" },
     success: function (response) {
       if (response.html) {
-        // 👉 Удалим старую модалку, если была
         const oldModal = document.getElementById('storeSelectModal');
         if (oldModal) oldModal.remove();
 
-        // 👉 Создаём временный контейнер и добавляем в body
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = response.html;
         document.body.appendChild(tempDiv);
 
-        // 👉 Ждём отрисовки и показываем модалку
         setTimeout(() => {
           const modalElement = document.getElementById('storeSelectModal');
           if (modalElement) {
             const modal = new bootstrap.Modal(modalElement);
             modal.show();
 
-            // Навесим обработчик формы
             $('#storeSelectForm').on('submit', function (e) {
               e.preventDefault();
               const storeId = $(this).find('select').val();
@@ -172,7 +209,7 @@ $(document).on('input', '.price-input', function () {
   });
 }
 
-// Фильтр товаров
+// === Фильтр товаров ===
 $('#filter-form').on('submit', function (e) {
   e.preventDefault();
 
@@ -194,7 +231,6 @@ $('#filter-form').on('submit', function (e) {
   });
 });
 
-// Динамичный фильтр товаров
 function updateProductTable() {
   const $form = $('#filter-form');
   const query = $form.serialize();
@@ -222,7 +258,7 @@ function updateProductTable() {
 let filterTimeout = null;
 $('#filter-form input[name="q"]').on('input', function () {
   clearTimeout(filterTimeout);
-  filterTimeout = setTimeout(updateProductTable, 400); // через 400 мс
+  filterTimeout = setTimeout(updateProductTable, 400);
 });
 
 $('#filter-form select').on('change', function () {
@@ -231,6 +267,6 @@ $('#filter-form select').on('change', function () {
 
 $('#reset-filters').on('click', function () {
   const $form = $('#filter-form');
-  $form[0].reset(); // сброс значений
+  $form[0].reset();
   updateProductTable();
 });

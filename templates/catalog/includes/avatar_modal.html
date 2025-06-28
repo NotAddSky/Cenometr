@@ -1,0 +1,25 @@
+{% block content %}
+<div class="modal fade" id="avatarModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Обновление аватарки</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body text-center">
+          <input type="file" id="avatarInput" accept="image/*" class="form-control mb-3">
+          <div>
+            <div id="avatarPreviewContainer" style="display: none;">
+              <img id="avatarPreview" style="max-width: 100%; display: none;" class="rounded shadow"> 
+            </div>
+            
+          </div>
+          <div id="avatarError" class="text-danger small mt-2"></div>
+        </div>
+        <div class="modal-footer">
+          <button id="saveAvatarBtn" class="btn btn-primary">Сохранить</button>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

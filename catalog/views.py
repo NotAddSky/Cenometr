@@ -1,7 +1,9 @@
+from datetime import timezone
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.contrib.auth import login
 from django.core.paginator import Paginator
+from django.core.files.base import ContentFile
 from django.db.models import OuterRef, Subquery
 from django.contrib.auth.decorators import user_passes_test
 from django.views.decorators.csrf import csrf_exempt
@@ -15,9 +17,11 @@ from rest_framework import viewsets
 from .models import *
 from .serializers import *
 from dal import autocomplete
+from PIL import Image
 from .forms import *
 from .decorators import role_required
 import json
+import io
 
 
 @role_required('user')
@@ -42,6 +46,32 @@ def profile_view(request):
     })
 
 
+@role_required('user')
+def upload_avatar(request):
+    image_file = request.FILES.get('avatar')
+    if not image_file:
+        return JsonResponse({'success': False, 'error': 'Файл не передан'}, status=400)
+
+    try:
+        image = Image.open(image_file).convert('RGB')
+        buffer = io.BytesIO()
+        image.save(buffer, format='WEBP', quality=95)
+        buffer.seek(0)
+
+        filename = 'avatar.webp'
+        upload_path = user_avatar_path(request.user, filename)
+
+        if request.user.avatar and request.user.avatar.name != upload_path:
+            request.user.avatar.delete(save=False)
+
+        request.user.avatar.save(
+            upload_path, ContentFile(buffer.getvalue()), save=True)
+
+        return JsonResponse({'success': True})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
 @role_required('owner')
 def owner_dashboard(request):
     user = request.user
@@ -57,29 +87,25 @@ def owner_dashboard(request):
     search = request.GET.get('q', '').strip()
     category_id = request.GET.get('category')
     manufacturer_id = request.GET.get('manufacturer')
-    # сортировка по умолчанию — по алфавиту
+
     order = request.GET.get('order', 'name')
 
-    # Если магазин не выбран
     if not selected_store_id:
         stores = Store.objects.filter(id__in=store_ids)
 
         if stores.count() == 1:
             return redirect(f"{request.path}?store={stores.first().id}")
 
-        # если запрос AJAX — отдать только HTML модалки
         if request.headers.get('x-requested-with') == 'XMLHttpRequest':
             html = render_to_string(
                 'catalog/includes/store_modal.html', {'stores': stores})
             return JsonResponse({'html': html})
 
-        # обычный первый заход – отдать HTML-страницу
         return render(request, 'catalog/owner_dashboard.html', {
             'stores': stores,
             'store_modal_needed': True
         })
 
-    # Магазин выбран корректно
     selected_store = Store.objects.filter(
         id=selected_store_id, id__in=store_ids).first()
 
@@ -240,7 +266,6 @@ def add_price(request):
     except Store.DoesNotExist:
         return HttpResponseBadRequest("Магазин не найден.")
 
-    # Проверка доступа
     if request.user.role != 'admin' and request.user not in store.owners.all():
         return render(request, '403.html', status=403)
 
@@ -576,7 +601,10 @@ def todo_delete_api(request, task_id):
 def home(request):
     offset = int(request.GET.get('offset', 0))
     limit = 9
+    addresses = AddressBase.objects.all()
 
+    address_query = request.GET.get('address', '').strip()
+    store_id = request.GET.get('store')
     category_id = request.GET.get('category')
 
     lowest_price = Price.objects.filter(
@@ -591,7 +619,18 @@ def home(request):
     if category_id:
         products_query = products_query.filter(category_id=category_id)
 
+    if store_id:
+        products_query = products_query.filter(
+            price__store_id=store_id).distinct()
+
+    if address_query:
+        products_query = products_query.filter(
+            price__store__address__icontains=address_query
+        ).distinct()
+
     products = products_query.order_by('name')[offset:offset+limit]
+    has_more = products_query.order_by(
+        'name')[offset+limit:offset+limit+1].exists()
 
     favorite_ids = []
     if request.user.is_authenticated:
@@ -605,12 +644,13 @@ def home(request):
             'products': products,
             'favorite_ids': favorite_ids,
         }, request=request)
-        return JsonResponse({'html': html})
+        return JsonResponse({'html': html, 'has_more': has_more})
 
     return render(request, 'catalog/home.html', {
         'products': products,
         'favorite_ids': favorite_ids,
-        'categories': ProductCategory.objects.all(),
+        'addresses': addresses,
+        'has_more': has_more,
     })
 
 
@@ -619,3 +659,32 @@ def product_detail(request, pk):
     product = get_object_or_404(Product, pk=pk)
     prices = Price.objects.filter(product=product).select_related('store')
     return render(request, 'catalog/product_detail.html', {'product': product, 'prices': prices})
+
+
+def get_stores_by_address(request, address_id):
+    stores = Store.objects.filter(
+        address_base_id=address_id).values('id', 'name')
+    return JsonResponse({'stores': list(stores)})
+
+
+def get_products_by_store(request, store_id):
+    lowest_price = Price.objects.filter(
+        product=OuterRef('pk'), store_id=store_id
+    ).order_by('price')
+
+    products = Product.objects.annotate(
+        min_price=Subquery(lowest_price.values('price')[:1]),
+        store_name=Subquery(lowest_price.values('store__name')[:1])
+    ).filter(price__store_id=store_id).distinct()
+
+    favorite_ids = []
+    if request.user.is_authenticated:
+        favorite_ids = list(Favorite.objects.filter(
+            user=request.user).values_list('product_id', flat=True))
+
+    html = render_to_string('catalog/includes/product_cards.html', {
+        'products': products,
+        'favorite_ids': favorite_ids,
+    }, request=request)
+
+    return JsonResponse({'html': html})

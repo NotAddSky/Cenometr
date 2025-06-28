@@ -1,0 +1,24 @@
+{% extends "admin_panel/base_admin.html" %}
+{% block content %}
+<h2 class="mb-4">Список товаров</h2>
+<table class="table table-bordered table-sm">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Название</th>
+      <th>Категория</th>
+      <th>Производитель</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for product in products %}
+    <tr>
+      <td>{{ product.id }}</td>
+      <td>{{ product.name }}</td>
+      <td>{{ product.category.name }}</td>
+      <td>{{ product.manufacturer.name }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

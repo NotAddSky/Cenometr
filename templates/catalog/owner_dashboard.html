@@ -28,16 +28,13 @@
 <hr>
 
 <form id="filter-form" class="row mb-3 g-2 align-items-end">
-  <!-- store ID (чтобы фильтр знали, к какому магазину применять) -->
   <input type="hidden" name="store" value="{{ selected_store.id }}">
 
-  <!-- Поиск по названию -->
   <div class="col-auto">
     <input type="text" name="q" class="form-control" placeholder="Поиск"
            value="{{ search_query }}">
   </div>
 
-  <!-- Категория -->
   <div class="col-auto">
     <select name="category" class="form-select">
       <option value="">Все категории</option>
@@ -50,7 +47,6 @@
     </select>
   </div>
 
-  <!-- Производитель -->
   <div class="col-auto">
     <select name="manufacturer" class="form-select">
       <option value="">Все производители</option>
@@ -63,7 +59,6 @@
     </select>
   </div>
 
-  <!-- Сортировка -->
   <div class="col-auto">
     <select name="order" class="form-select">
       <option value="name" {% if order == "name" %}selected{% endif %}>По названию</option>
@@ -155,8 +150,6 @@
   </tbody>
 </table>
 
-
-
 <div class="modal fade" id="universalModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -170,7 +163,6 @@
   </div>
 </div>
 
-<!-- Toast-подсказка -->
 <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1055">
   <div id="toast-deleted" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
     <div class="d-flex">

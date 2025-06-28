@@ -1,68 +1,98 @@
 {% extends "base.html" %}
-
-{% block content %}
 {% load custom_filters %}
 {% load static %}
-<script src="{% static 'catalog/js/load_more.js' %}"></script>
+
+{% block content %}
 <link rel="stylesheet" href="{% static 'catalog/css/main.css' %}">
 <link rel="stylesheet" href="{% static 'catalog/css/sidebar.css' %}">
+<script src="{% static 'catalog/js/load_more.js' %}"></script>
 
-<div class="container mt-4">
-  <div class="d-flex flex-wrap flex-lg-nowrap gap-4 justify-content-center">
+<div class="container-fluid mt-3">
+  <div class="row">
 
-    <!-- Колонка с товарами -->
-    <div id="productGrid" class="limited-grid">
-      {% for product in products %}
-        <div class="product-card fade-in">
-          <div class="card h-100">
-            <img src="{{ product.image.url }}" class="card-img-top"
-                 onerror="this.src='/media/no-photo.png'" alt="Фото">
-            <div class="card-body">
-              <h6 class="card-title">{{ product.name }}</h6>
-              <p class="card-text">
-                от <strong>{{ product.min_price|clean_number  }} ₸</strong><br>
-                <small class="text-muted">в {{ product.store_name }}</small>
-              </p>
+    <!-- Левая панель фильтров -->
+    <div class="col-md-3 col-lg-2">
+      <div class="filter-sidebar">
+        <label for="addressSelect" class="form-label">Выберите адрес:</label>
+        <select id="addressSelect" class="form-select mb-3">
+          <option value="">Все адреса</option>
+          {% for address in addresses %}
+            <option value="{{ address.id }}">{{ address }}</option>
+          {% endfor %}
+        </select>
+
+        <div id="storeList" class="list-group mb-3" style="display: none;"></div>
+      </div>
+    </div>
+
+    <!-- Сетка товаров -->
+    <div class="col-md-9 col-lg-10">
+      {% if products %}
+        <div id="productGrid" class="limited-grid d-flex flex-wrap gap-4 justify-content-center">
+          {% for product in products %}
+            <div class="product-card fade-in">
+              <div class="card h-100">
+                <img src="{{ product.image.url }}" class="card-img-top"
+                     onerror="this.src='/media/no-photo.png'" alt="Фото">
+                <div class="card-body">
+                  <h6 class="card-title">{{ product.name }}</h6>
+                  <p class="card-text">
+                    от <strong>{{ product.min_price|clean_number }} ₸</strong><br>
+                    <small class="text-muted">в {{ product.store_name }}</small>
+                  </p>
+                </div>
+                <div class="card-footer d-flex justify-content-between">
+                  <button class="btn btn-sm btn-outline-primary open-product-modal"
+                          data-url="{% url 'product_detail_ajax' product.id %}"
+                          data-product-id="{{ product.id }}">
+                    Подробнее
+                  </button>
+                  <button class="btn btn-sm btn-outline-warning favorite-btn"
+                          data-product-id="{{ product.id }}"
+                          data-is-favorite="{% if product.id in favorite_ids %}true{% else %}false{% endif %}"
+                          title="Добавить в избранное">
+                    <span class="favorite-icon">
+                      {% if product.id in favorite_ids %}★{% else %}☆{% endif %}
+                    </span>
+                  </button>
+                </div>
+              </div>
             </div>
-            <div class="card-footer d-flex justify-content-between">
-              <button class="btn btn-sm btn-outline-primary open-product-modal" 
-              data-url="{% url 'product_detail_ajax' product.id %}" data-product-id="{{ product.id }}"> Подробнее </button>
-              <button class="btn btn-sm btn-outline-warning favorite-btn"
-                      data-product-id="{{ product.id }}"
-                      data-is-favorite="{% if product.id in favorite_ids %}true{% else %}false{% endif %}"
-                      title="Добавить в избранное">
-                <span class="favorite-icon">{% if product.id in favorite_ids %}★{% else %}☆{% endif %}</span>
-              </button>
-            </div>
-          </div>
+          {% endfor %}
         </div>
-      {% endfor %}
+
+        <div class="text-center mt-4">
+          <button id="loadMoreBtn" class="btn btn-outline-primary" data-offset="9" data-has-more="{{ has_more|yesno:'true,false' }}">
+            Показать ещё
+          </button>
+        </div>
+
+        <!-- Добавленный блок, скрыт по умолчанию -->
+        <div id="noMoreProducts" class="text-center text-muted fs-5 py-5" style="display: none;">
+          Товары закончились.
+          {% if user.is_authenticated %}
+            <a href="#" data-bs-toggle="modal" data-bs-target="#suggestProductModal">Предложите товар</a>
+          {% else %}
+            <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal">Войдите, чтобы предложить товар</a>
+          {% endif %}
+        </div>
+
+      {% else %}
+        <div class="text-center text-muted fs-5 py-5">
+          Товары не найдены. 
+          {% if user.is_authenticated %}
+            <a href="#" data-bs-toggle="modal" data-bs-target="#suggestProductModal">Предложите товар</a>
+          {% else %}
+            <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal">Войдите, чтобы предложить товар</a>
+          {% endif %}
+        </div>
+      {% endif %}
+
+      {% if user.is_authenticated %}
+        {% include "catalog/includes/suggest_product_modal.html" %}
+      {% endif %}
     </div>
 
-<!-- Правая колонка -->
-<div class="right-sidebar">
-  <h5>Фильтры</h5>
-  <form id="productFilters">
-    <div class="mb-3">
-      <label for="categorySelect" class="form-label">Категория</label>
-      <select class="form-select" id="categorySelect" name="category">
-        <option value="">Все категории</option>
-        {% for cat in categories %}
-          <option value="{{ cat.id }}">{{ cat.name }}</option>
-        {% endfor %}
-      </select>
-    </div>
-  </form>
-</div>
-
-  </div>
-
-  <div class="text-center mt-4">
-    <button id="loadMoreBtn" class="btn btn-outline-primary" data-offset="9">Показать ещё</button>
   </div>
 </div>
-  </div>
-</div>
-
-
 {% endblock %}

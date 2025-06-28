@@ -1,58 +1,38 @@
 document.addEventListener('DOMContentLoaded', function () {
-  const loadMoreBtn = document.getElementById('loadMoreBtn');
-  if (!loadMoreBtn) return;
-
-  loadMoreBtn.addEventListener('click', function () {
-    const offset = parseInt(loadMoreBtn.dataset.offset, 10);
-
-    fetch(`/?offset=${offset}`, {
-      method: 'GET',
-      headers: {
-        'X-Requested-With': 'XMLHttpRequest'
-      }
-    })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Ошибка загрузки данных');
-        }
-        return response.json();
-      })
-      .then(data => {
-        if (data.html) {
-          const productGrid = document.getElementById('productGrid');
-          productGrid.insertAdjacentHTML('beforeend', data.html);
-          // Увеличить offset
-          loadMoreBtn.dataset.offset = offset + 9;
-        } else {
-          loadMoreBtn.remove(); // Если товаров больше нет
-        }
-      })
-      .catch(error => {
-        console.error("Ошибка подгрузки:", error);
-      });
-  });
-});
-
-document.addEventListener('DOMContentLoaded', () => {
-  const filterForm = document.getElementById('productFilters');
-  const categorySelect = document.getElementById('categorySelect');
-
-  if (categorySelect) {
-    categorySelect.addEventListener('change', () => {
-      const category = categorySelect.value;
-      const url = `/?category=${category}`;
-
-      fetch(url, {
-        headers: {
-          'X-Requested-With': 'XMLHttpRequest',
-        },
-      })
-      .then(res => res.json())
-      .then(data => {
-        document.getElementById('productGrid').innerHTML = data.html;
-        document.getElementById('loadMoreBtn').style.display = 'none';
-      })
-      .catch(err => console.error("Ошибка фильтрации:", err));
-    });
+  const loadBtn = document.getElementById('loadMoreBtn');
+  if (!loadBtn || loadBtn.dataset.hasMore === 'false') {
+    loadBtn?.remove();
+    return;
   }
+
+  loadBtn.addEventListener('click', function () {
+    const offset = parseInt(loadBtn.dataset.offset || '0');
+    fetch(`/?offset=${offset}`, {
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(res => res.json())
+    .then(data => {
+      const grid = document.getElementById('productGrid');
+
+      if (data.html?.trim()) {
+        grid.insertAdjacentHTML('beforeend', data.html);
+        loadBtn.dataset.offset = offset + 9;
+      }
+
+      loadBtn.dataset.hasMore = data.has_more ? 'true' : 'false';
+
+      if (!data.has_more || !data.html.trim()) {
+        loadBtn.remove();
+        const noMoreBlock = document.getElementById('noMoreProducts');
+        if (noMoreBlock) {
+          noMoreBlock.style.display = 'block';
+        }
+      }
+      
+    })
+    .catch(error => {
+      console.error('Ошибка при загрузке товаров:', error);
+      loadBtn.remove();
+    });
+  });
 });

@@ -1,0 +1,49 @@
+
+<div class="modal fade" id="suggestProductModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <form id="suggestProductForm" enctype="multipart/form-data" method="post">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title">Предложить товар</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="productName" class="form-label">Название товара</label>
+            <input type="text" class="form-control" id="productName" name="name" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="productCategory" class="form-label">Категория</label>
+            <input type="text" class="form-control" id="productCategory" name="category" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="manufacturer" class="form-label">Производитель (если известен)</label>
+            <input type="text" class="form-control" id="manufacturer" name="manufacturer">
+          </div>
+
+          <div class="mb-3">
+            <label for="store" class="form-label">Магазин</label>
+            <input type="text" class="form-control" id="store" name="store" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="price" class="form-label">Цена</label>
+            <input type="number" class="form-control" id="price" name="price" step="0.01" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="image" class="form-label">Фото товара или ценника</label>
+            <input type="file" class="form-control" id="image" name="image" accept="image/*">
+            <img id="imagePreview" src="#" alt="Превью" class="img-fluid mt-2 d-none" style="max-height: 200px;">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">Отправить предложение</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

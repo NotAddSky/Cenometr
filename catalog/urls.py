@@ -45,6 +45,14 @@ urlpatterns = [
     path('favorites/toggle/', views.toggle_favorite, name='toggle_favorite'),
     path('accounts/', include('allauth.urls')),
     path('telegram-auth/', views.telegram_auth, name='telegram_auth'),
+    path('profile/upload-avatar/', views.upload_avatar, name='upload_avatar'),
+    path('api/stores/by-address/<int:address_id>/',
+         views.get_stores_by_address, name='get_stores_by_address'),
+    path('api/products/by-store/<int:store_id>/',
+         views.get_products_by_store, name='get_products_by_store'),
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+todo_api_urls = [
     path('api/todo/', views.todo_list_api, name='todo_list_api'),
     path('api/todo/create/', views.todo_create_api, name='todo_create_api'),
     path('api/todo/<int:task_id>/update/',
