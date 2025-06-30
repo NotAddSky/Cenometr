@@ -61,7 +61,7 @@ def dashboard(request):
     context = {
         'total_products': Product.objects.count(),
         'total_stores': Store.objects.count(),
-        'pending_suggestions': ProductSuggestion.objects.filter(status='pending').count()
+        'pending_suggestions': ProductSuggestion.objects.filter(status='new').count()
     }
     return render(request, 'admin_panel/dashboard.html', context)
 

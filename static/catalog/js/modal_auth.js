@@ -72,45 +72,12 @@ function onTelegramAuth(user) {
   .then(res => res.json())
   .then(data => {
     if (data.success) {
-      location.reload();
+      showToast('Вход выполнен через Telegram');
+      setTimeout(() => location.reload(), 1000);
     } else {
-      alert("Ошибка авторизации через Telegram");
+      showToast('Ошибка Telegram: ' + (data.error || 'неизвестно'), true);
     }
-  });
+  })
+  .catch(() => showToast('Сетевая ошибка', true));
 }
-
-document.addEventListener('DOMContentLoaded', () => {
-  const testBtn = document.getElementById('testTelegramBtn');
-  if (testBtn) {
-    testBtn.addEventListener('click', () => {
-      const testUser = {
-        id: 123456789,
-        username: 'test_user',
-        first_name: 'Test',
-        last_name: 'User',
-        auth_date: Math.floor(Date.now() / 1000),
-        hash: 'dummy'  // На этапе теста пока игнорируем проверку подписи
-      };
-
-      fetch('/telegram-auth/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': getCookie('csrftoken'),
-        },
-        body: JSON.stringify(testUser)
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          showToast('Успешный вход как Telegram-пользователь');
-          setTimeout(() => location.reload(), 1000);
-        } else {
-          showToast('Ошибка: ' + (data.error || 'неизвестно'), true);
-        }
-      })
-      .catch(() => showToast('Сетевая ошибка', true));
-    });
-  }
-});
 

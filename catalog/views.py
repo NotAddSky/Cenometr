@@ -22,6 +22,8 @@ from .forms import *
 from .decorators import role_required
 import json
 import io
+import hashlib
+import hmac
 
 
 @role_required('user')
@@ -374,7 +376,17 @@ def register(request):
     return render(request, 'registration/register.html', {'form': form})
 
 
-TELEGRAM_BOT_TOKEN = '123456789:ABCDEF...'
+def verify_telegram_auth(data):
+    token = settings.TELEGRAM_BOT_TOKEN
+    secret_key = hashlib.sha256(token.encode()).digest()
+
+    auth_data = {k: v for k, v in data.items() if k != 'hash'}
+    sorted_data = sorted(f"{k}={v}" for k, v in auth_data.items())
+    data_check_string = '\n'.join(sorted_data)
+    h = hmac.new(secret_key, data_check_string.encode(),
+                 hashlib.sha256).hexdigest()
+
+    return h == data.get('hash')
 
 
 @csrf_exempt
@@ -382,6 +394,10 @@ def telegram_auth(request):
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
+
+            if not verify_telegram_auth(data):
+                return JsonResponse({'success': False, 'error': 'Недостоверная подпись Telegram'})
+
             telegram_id = data.get('id')
             username = data.get('username', f'tg_user_{telegram_id}')
             first_name = data.get('first_name', '')
@@ -401,8 +417,8 @@ def telegram_auth(request):
 
             user.backend = 'django.contrib.auth.backends.ModelBackend'
             login(request, user)
-
             return JsonResponse({'success': True})
+
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)})
 
