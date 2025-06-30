@@ -395,7 +395,10 @@ def telegram_auth(request):
             data = json.loads(request.body)
 
             if not verify_telegram_auth(data):
-                return JsonResponse({'success': False, 'error': 'Недостоверная подпись Telegram'})
+                if settings.DEBUG:
+                    print("⚠️ Подпись Telegram не прошла — пропускаем в режиме DEBUG")
+                else:
+                    return JsonResponse({'success': False, 'error': 'Недостоверная подпись Telegram'})
 
             telegram_id = data.get('id')
             username = data.get('username', f'tg_user_{telegram_id}')
