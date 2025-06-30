@@ -389,7 +389,6 @@ def verify_telegram_auth(data):
     return h == data.get('hash')
 
 
-@csrf_exempt
 def telegram_auth(request):
     if request.method == 'POST':
         try:
