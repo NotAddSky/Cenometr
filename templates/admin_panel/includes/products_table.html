@@ -1,0 +1,25 @@
+<div class="d-flex justify-content-between mb-2">
+    <input type="text" id="productSearch" class="form-control w-50" placeholder="Поиск товара...">
+    <button class="btn btn-success" id="addProductBtn">Добавить товар</button>
+  </div>
+  
+  <table class="table table-bordered">
+  <thead><tr><th>Фото</th><th>Название</th><th>Категория</th><th>Производитель</th><th>Действия</th></tr></thead>
+  <tbody id="productTableBody">
+    {% for product in products %}
+    <tr>
+      <td><img src="{{ product.image.url }}" width="40"></td>
+      <td>{{ product.name }}</td>
+      <td>{{ product.category.name }}</td>
+      <td>{{ product.manufacturer.name }}</td>
+      <td>
+        <button class="btn btn-sm btn-outline-primary edit-product-btn" data-id="{{ product.id }}">✏</button>
+        <button class="btn btn-sm btn-outline-danger delete-product-btn" data-id="{{ product.id }}">🗑</button>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+  </table>
+  
+  {% include 'admin_panel/includes/pagination.html' with total=total page=page per_page=per_page %}
+  

@@ -1,0 +1,36 @@
+<div class="modal fade" id="productModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <form id="productForm" class="modal-content">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title" id="productModalTitle">Добавить товар</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+        </div>
+        <div class="modal-body row g-3">
+          <div class="col-md-6">
+            <label for="productName" class="form-label">Название</label>
+            <input type="text" class="form-control" id="productName" name="name" required>
+          </div>
+          <div class="col-md-6">
+            <label for="productImage" class="form-label">Фото (URL или загрузка)</label>
+            <input type="file" class="form-control" id="productImage" name="image">
+          </div>
+          <div class="col-md-6">
+            <label for="productCategory" class="form-label">Категория</label>
+            <select class="form-select" id="productCategory" name="category" required></select>
+          </div>
+          <div class="col-md-6">
+            <label for="productManufacturer" class="form-label">Производитель</label>
+            <select class="form-select" id="productManufacturer" name="manufacturer"></select>
+          </div>
+          <input type="hidden" id="productId" name="id">
+          <div id="productError" class="text-danger small d-none mt-2"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">Сохранить</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  

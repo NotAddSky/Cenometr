@@ -33,7 +33,20 @@ urlpatterns = [
          views.edit_manufacturer, name='edit_manufacturer'),
     path('manufacturers/<int:manufacturer_id>/delete/',
          views.delete_manufacturer, name='delete_manufacturer'),
-
+    path('manage-products/', views.product_management,
+         name='admin_product_management'),
     path('products/', views.product_management, name='admin_product_list'),
-
+    path('admin/fetch_products/',
+         views.fetch_categories, name='fetch_products  '),
+    path('admin/fetch_manufacturers/',
+         views.fetch_manufacturers, name='fetch_manufacturers'),
+    path('admin/fetch_categories/',
+         views.fetch_categories, name='fetch_categories'),
+    path('admin/fetch_manufacturers/',
+         views.fetch_manufacturers, name='fetch_manufacturers'),
+    path('admin/products/save/', views.save_product, name='admin_save_product'),
+    path('admin/categories/save/', views.save_category,
+         name='admin_save_category'),
+    path('admin/manufacturers/save/', views.save_manufacturer,
+         name='admin_save_manufacturer'),
 ]

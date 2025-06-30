@@ -1,0 +1,22 @@
+<div class="modal fade" id="categoryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <form id="categoryForm" class="modal-content">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title" id="categoryModalTitle">Добавить категорию</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+        </div>
+        <div class="modal-body">
+          <label for="categoryName" class="form-label">Название</label>
+          <input type="text" class="form-control" id="categoryName" name="name" required>
+          <input type="hidden" id="categoryId" name="id">
+          <div id="categoryError" class="text-danger small d-none mt-2"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">Сохранить</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  

@@ -1,0 +1,22 @@
+<div class="modal fade" id="manufacturerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <form id="manufacturerForm" class="modal-content">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title" id="manufacturerModalTitle">Добавить производителя</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+        </div>
+        <div class="modal-body">
+          <label for="manufacturerName" class="form-label">Название</label>
+          <input type="text" class="form-control" id="manufacturerName" name="name" required>
+          <input type="hidden" id="manufacturerId" name="id">
+          <div id="manufacturerError" class="text-danger small d-none mt-2"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">Сохранить</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  

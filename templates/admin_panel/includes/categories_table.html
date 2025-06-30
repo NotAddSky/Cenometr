@@ -1,0 +1,42 @@
+<table class="table table-sm table-hover align-middle">
+    <thead>
+      <tr>
+        <th>Название</th>
+        <th>Товаров</th>
+        <th style="width: 200px;">Действия</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for category in categories %}
+      <tr data-name="{{ category.name|lower }}">
+        <td>{{ category.name }}</td>
+        <td>
+          {% if category.product_set.count %}
+            <span class="text-muted small">({{ category.product_set.count }} товар(ов))</span>
+          {% else %}
+            —
+          {% endif %}
+        </td>
+        <td>
+          <button class="btn btn-sm btn-outline-secondary me-2 edit-category-btn"
+                  data-id="{{ category.id }}"
+                  data-name="{{ category.name }}"
+                  data-bs-toggle="modal"
+                  data-bs-target="#categoryModal">
+            Редактировать
+          </button>
+          {% if category.product_set.count == 0 %}
+          <button class="btn btn-sm btn-outline-danger delete-category-btn" data-id="{{ category.id }}">
+            Удалить
+          </button>
+          {% else %}
+          <span class="text-muted small">Удаление недоступно</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  
+  {% include "admin_panel/includes/pagination.html" with page=page total=total per_page=per_page %}
+  

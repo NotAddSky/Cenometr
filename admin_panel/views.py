@@ -265,3 +265,159 @@ def product_management(request):
         'categories': categories,
         'manufacturers': manufacturers
     })
+
+
+@role_required('admin')
+def product_management(request):
+    return render(request, 'admin_panel/product_management.html')
+
+
+@role_required('admin')
+def fetch_products(request):
+    from catalog.models import Product
+    query = request.GET.get('q', '')
+    page = int(request.GET.get('page', 1))
+    per_page = 20
+
+    products = Product.objects.select_related('category', 'manufacturer')
+    if query:
+        products = products.filter(name__icontains=query)
+
+    total = products.count()
+    products = products[(page-1)*per_page: page*per_page]
+
+    return render(request, 'admin_panel/includes/products_table.html', {
+        'products': products,
+        'page': page,
+        'total': total,
+        'per_page': per_page,
+    })
+
+
+@role_required('admin')
+def fetch_categories(request):
+    query = request.GET.get('q', '')
+    page = int(request.GET.get('page', 1))
+    per_page = 20
+
+    categories = ProductCategory.objects.all()
+    if query:
+        categories = categories.filter(name__icontains=query)
+
+    total = categories.count()
+    categories = categories[(page - 1) * per_page: page * per_page]
+
+    return render(request, 'admin_panel/includes/categories_table.html', {
+        'categories': categories,
+        'page': page,
+        'total': total,
+        'per_page': per_page,
+    })
+
+
+@role_required('admin')
+def fetch_manufacturers(request):
+    query = request.GET.get('q', '')
+    page = int(request.GET.get('page', 1))
+    per_page = 20
+
+    manufacturers = Manufacturer.objects.all()
+    if query:
+        manufacturers = manufacturers.filter(name__icontains=query)
+
+    total = manufacturers.count()
+    manufacturers = manufacturers[(page - 1) * per_page: page * per_page]
+
+    return render(request, 'admin_panel/includes/manufacturers_table.html', {
+        'manufacturers': manufacturers,
+        'page': page,
+        'total': total,
+        'per_page': per_page,
+    })
+
+
+@require_POST
+def save_product(request):
+    try:
+        product_id = request.POST.get('id')
+        name = request.POST.get('name', '').strip()
+        category_id = request.POST.get('category')
+        manufacturer_id = request.POST.get('manufacturer')
+
+        if not name or not category_id:
+            return JsonResponse({'error': 'Название и категория обязательны.'})
+
+        category = ProductCategory.objects.get(id=category_id)
+        manufacturer = Manufacturer.objects.filter(
+            id=manufacturer_id).first() if manufacturer_id else None
+
+        if product_id:
+            product = Product.objects.get(id=product_id)
+            product.name = name
+            product.category = category
+            product.manufacturer = manufacturer
+            product.save()
+        else:
+            Product.objects.create(
+                name=name, category=category, manufacturer=manufacturer)
+
+        return JsonResponse({'success': True})
+
+    except ProductCategory.DoesNotExist:
+        return JsonResponse({'error': 'Категория не найдена'})
+    except Product.DoesNotExist:
+        return JsonResponse({'error': 'Товар не найден'})
+    except Exception as e:
+        return JsonResponse({'error': str(e)})
+
+
+@require_POST
+def save_category(request):
+    try:
+        category_id = request.POST.get('id')
+        name = request.POST.get('name', '').strip()
+
+        if not name:
+            return JsonResponse({'error': 'Название обязательно'})
+
+        if ProductCategory.objects.exclude(id=category_id).filter(name__iexact=name).exists():
+            return JsonResponse({'error': 'Категория с таким названием уже существует'})
+
+        if category_id:
+            category = ProductCategory.objects.get(id=category_id)
+            category.name = name
+            category.save()
+        else:
+            ProductCategory.objects.create(name=name)
+
+        return JsonResponse({'success': True})
+    except ProductCategory.DoesNotExist:
+        return JsonResponse({'error': 'Категория не найдена'})
+    except Exception as e:
+        return JsonResponse({'error': str(e)})
+
+
+@require_POST
+def save_manufacturer(request):
+    try:
+        manufacturer_id = request.POST.get('id')
+        name = request.POST.get('name', '').strip()
+
+        if not name:
+            return JsonResponse({'error': 'Название обязательно'})
+
+        if Manufacturer.objects.exclude(id=manufacturer_id).filter(name__iexact=name).exists():
+            return JsonResponse({'error': 'Производитель с таким названием уже существует'})
+
+        if manufacturer_id:
+            manufacturer = Manufacturer.objects.get(id=manufacturer_id)
+            manufacturer.name = name
+            manufacturer.save()
+        else:
+            Manufacturer.objects.create(name=name)
+
+        return JsonResponse({'success': True})
+    except Manufacturer.DoesNotExist:
+        return JsonResponse({'error': 'Производитель не найден'})
+    except Exception as e:
+        return JsonResponse({'error': str(e)})

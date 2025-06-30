@@ -1,0 +1,13 @@
+{% for product in products %}
+<tr data-category="{{ product.category_id }}" data-manufacturer="{{ product.manufacturer_id }}">
+  <td><img src="{{ product.image.url }}" width="50"></td>
+  <td>{{ product.name }}</td>
+  <td>{{ product.category.name }}</td>
+  <td>{{ product.manufacturer.name }}</td>
+  <td>{{ product.quantity_value }} {{ product.get_quantity_unit_display }}</td>
+  <td>
+    <button class="btn btn-sm btn-outline-primary edit-product-btn" data-id="{{ product.id }}">✏️</button>
+    <button class="btn btn-sm btn-outline-danger delete-product-btn" data-id="{{ product.id }}">🗑️</button>
+  </td>
+</tr>
+{% endfor %}
